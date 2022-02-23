@@ -9,12 +9,13 @@ console.log("Variable environnement:", process.env.PASSWORD)
 
 require("./mongo")
 
-const { createUser } = require('./controllers/Users')
+const { createUser, userLog } = require('./controllers/Users')
 
 app.use(cors())
 app.use(express.json());
 
 app.post('/api/auth/signup', createUser)
+app.post('/api/auth/login', userLog)
 
 app.get('/', (req, res) =>
     res.send('Hello World!')
