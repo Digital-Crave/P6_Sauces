@@ -41,7 +41,7 @@ async function userLog(req, res) {
 
 function createToken(email) {
     const jwtPassword = process.env.JWT_PASSWORD
-    return jwt.sign({ email: email }, jwtPassword, { expiresIn: "24h" })
+    return jwt.sign({ email: email }, jwtPassword, { expiresIn: "1000ms" })
 }
 
 module.exports = { createUser, userLog }
