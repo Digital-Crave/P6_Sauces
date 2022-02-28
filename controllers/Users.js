@@ -9,7 +9,7 @@ async function createUser(req, res) {
     const hash = await hashPassword(password)
 
     const user = new User({ email, password: hash })
-
+    /* utiliser try catch */
     user.save()
         .then(() => res.status(201).send({ message: "Nouvel utilisateur enregistré ! " }))
         .catch((err) => res.status(409).send({ message: "Utilisateur pas enregistré : " + err }))
@@ -41,7 +41,7 @@ async function userLog(req, res) {
 
 function createToken(email) {
     const jwtPassword = process.env.JWT_PASSWORD
-    return jwt.sign({ email: email }, jwtPassword, { expiresIn: "1000ms" })
+    return jwt.sign({ email: email }, jwtPassword, { expiresIn: "24h" })
 }
 
 module.exports = { createUser, userLog }

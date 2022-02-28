@@ -10,14 +10,16 @@ console.log("Variable environnement:", process.env.PASSWORD)
 require("./mongo")
 
 const { createUser, userLog } = require('./controllers/Users')
-const { getSauces } = require('./controllers/sauces')
+const { getSauces, createSauces } = require('./controllers/sauces')
 
 app.use(cors())
 app.use(express.json());
+const { authenticatedUser } = require('./middleware/authentification')
 
 app.post('/api/auth/signup', createUser)
 app.post('/api/auth/login', userLog)
-app.get('/api/sauces', getSauces)
+app.get('/api/sauces', authenticatedUser, getSauces)
+app.post('/api/sauces', authenticatedUser, createSauces)
 app.get('/', (req, res) =>
     res.send('Hello World!')
 )
