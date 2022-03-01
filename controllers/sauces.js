@@ -23,20 +23,30 @@ function getSauces(req, res) {
 }
 
 async function createSauces(req, res) {
+    const { body, file } = req
+
+    const sauce = JSON.parse(body.sauce);
+
+    const { name, manufacturer, description, mainPepper, heat, userId } = sauce
+
+    const { fileName } = file
+
     const product = new Product({
-        userId: "test",
-        name: "test",
-        manufacturer: "test",
-        description: "test",
-        mainPepper: "test",
-        imageUrl: "test",
-        heat: 2,
-        likes: 2,
-        dislikes: 2,
-        usersLiked: ["test"],
-        usersDisliked: ["test"]
+        userId: userId,
+        name: name,
+        manufacturer: manufacturer,
+        description: description,
+        mainPepper: mainPepper,
+        imageUrl: req.protocol + "://" + req.get("host") + "/images/" + fileName,
+        heat: heat,
+        likes: 0,
+        dislikes: 0,
+        usersLiked: [],
+        usersDisliked: []
     })
-    await product.save().catch(console.error)
+    await product
+        .save()
+        .catch(console.error)
 }
 
 module.exports = { getSauces, createSauces }

@@ -3,9 +3,13 @@ require('dotenv').config()
 const express = require('express')
 const app = express()
 const cors = require('cors')
+const bodyParser = require('body-parser')
+const path = require('path')
+const { upload } = require('./middleware/multer')
+const { authenticatedUser } = require('./middleware/authentification')
+
 const port = 3000
 
-console.log("Variable environnement:", process.env.PASSWORD)
 
 require("./mongo")
 
@@ -14,15 +18,19 @@ const { getSauces, createSauces } = require('./controllers/sauces')
 
 app.use(cors())
 app.use(express.json());
-const { authenticatedUser } = require('./middleware/authentification')
+app.use(bodyParser.json());
+
 
 app.post('/api/auth/signup', createUser)
 app.post('/api/auth/login', userLog)
 app.get('/api/sauces', authenticatedUser, getSauces)
-app.post('/api/sauces', authenticatedUser, createSauces)
+app.post('/api/sauces', authenticatedUser, upload.single("image"), createSauces)
 app.get('/', (req, res) =>
     res.send('Hello World!')
 )
+
+path.join(__dirname)
+app.use("/images", express.static(path.join(__dirname, 'images')))
 
 app.listen(port, () => {
     console.log(`Sauce app listening on port ${port}`)
