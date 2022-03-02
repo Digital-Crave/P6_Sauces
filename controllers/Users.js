@@ -23,6 +23,10 @@ async function userLog(req, res) {
     try {
 
         const email = req.body.email
+        if (!email) {
+            res.status(403).send({ message: "Email incorrect ! " })
+        }
+
         const password = req.body.password
         const user = await User.findOne({ email: email })
 

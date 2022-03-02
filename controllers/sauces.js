@@ -17,12 +17,30 @@ const productSchema = new mongoose.Schema({
 const Product = mongoose.model("Product", productSchema)
 
 
-function getSauces(req, res) {
-    Product.find({}).then(products => res.send(products))
-    //res.send({ message: [{ sauce: "sauce1" }, { sauce: "sauce2" }] })
+async function getSauces(req, res) {
+    try {
+        const products = await Product.find({})
+        res.send(products)
+    } catch (error) {
+        res.status(500).send(error)
+    }
 }
 
-async function createSauces(req, res) {
+async function getSaucesById(req, res, next) {
+    try {
+        const { id } = req.params
+        if (!req.params.id) next()
+        else {
+            const product = await Product.findById(id)
+            res.send(product)
+        }
+    } catch (error) {
+        res.status(500).send(error)
+    }
+}
+
+
+function createSauces(req, res) {
     const { body, file } = req
 
     const sauce = JSON.parse(body.sauce);
@@ -44,9 +62,12 @@ async function createSauces(req, res) {
         usersLiked: [],
         usersDisliked: []
     })
-    await product
+    product
         .save()
+        .then((message) => {
+            res.status(201).send({ message: message })
+        })
         .catch(console.error)
 }
 
-module.exports = { getSauces, createSauces }
+module.exports = { getSauces, createSauces, getSaucesById }
