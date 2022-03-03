@@ -14,7 +14,7 @@ const port = 3000
 require("./mongo")
 
 const { createUser, userLog } = require('./controllers/Users')
-const { getSauces, createSauces, getSaucesById } = require('./controllers/sauces')
+const { getSauces, createSauces, getSaucesById, deleteSauces } = require('./controllers/sauces')
 
 app.use(cors())
 app.use(express.json());
@@ -25,6 +25,7 @@ app.post('/api/auth/signup', createUser)
 app.post('/api/auth/login', userLog)
 app.get('/api/sauces', authenticatedUser, getSauces)
 app.get("/api/sauces/:id", authenticatedUser, getSaucesById)
+app.delete("/api/sauces/:id", authenticatedUser, deleteSauces)
 app.post('/api/sauces', authenticatedUser, upload.single("image"), createSauces)
 app.get('/', (req, res) =>
     res.send('Hello World!')

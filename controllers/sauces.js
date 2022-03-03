@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { unlink } = require('fs')
 
 const productSchema = new mongoose.Schema({
     userId: String,
@@ -70,4 +71,21 @@ async function createSauces(req, res) {
     }
 }
 
-module.exports = { getSauces, createSauces, getSaucesById }
+function deleteSauces(req, res) {
+    const { id } = req.params
+    Product.findByIdAndDelete(id)
+        .then(deleteImage)
+        .then(product => res.send({ message: product }))
+        .catch((error) => res.status(500).send({ message: error }))
+}
+
+function deleteImage(product) {
+    const imageUrl = product.imageUrl
+    const imageToDelete = imageUrl.split('/').at(-1)
+    unlink(`images/${imageToDelete}`, (err) => {
+        console.error(err)
+    })
+    return product
+}
+
+module.exports = { getSauces, createSauces, getSaucesById, deleteSauces }
