@@ -40,7 +40,7 @@ async function getSaucesById(req, res, next) {
 }
 
 
-function createSauces(req, res) {
+async function createSauces(req, res) {
     const { body, file } = req
 
     const sauce = JSON.parse(body.sauce);
@@ -62,12 +62,12 @@ function createSauces(req, res) {
         usersLiked: [],
         usersDisliked: []
     })
-    product
-        .save()
-        .then((message) => {
-            res.status(201).send({ message: message })
-        })
-        .catch(console.error)
+    try {
+        const message = await product.save()
+        res.status(201).send({ message: message })
+    } catch (error) {
+        res.status(500).send(error)
+    }
 }
 
 module.exports = { getSauces, createSauces, getSaucesById }
