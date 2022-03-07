@@ -40,11 +40,26 @@ async function getSaucesById(req, res, next) {
     }
 }
 
+function modifySauces(req, res) {
+    const { params: { id } } = req
+
+    const { body } = req
+
+    Product.findByIdAndUpdate(id, body)
+        .then((response) => {
+            if (response == null) {
+                res.status(404).send({ message: "nothing was found" })
+            } else {
+                res.status(200).send({ message: "update done" })
+            }
+        })
+        .catch((err) => console.error("error while updating", err))
+}
 
 async function createSauces(req, res) {
     const { body, file } = req
 
-    const sauce = JSON.parse(body.sauce);
+    const sauce = JSON.parse(body.sauce)
 
     const { name, manufacturer, description, mainPepper, heat, userId } = sauce
 
@@ -71,19 +86,25 @@ async function createSauces(req, res) {
     }
 }
 
+
 function deleteSauces(req, res) {
     const { id } = req.params
     Product.findByIdAndDelete(id)
-        .then(deleteImage)
-        .then(product => res.send({ message: product }))
-        .catch((error) => res.status(500).send({ message: error }))
+        .then((product) => {
+            if (product == null) {
+                res.status(404).send({ message: "nothing was found in database" })
+            } else {
+                res.status(200).send({ message: "update done" })
+            }
+        })
+        .catch((err) => res.status(500).send({ message: err }))
 }
 
 
-function deleteImage(product) {
-    const { imageUrl } = product
-    const imageToDelete = imageUrl.split('/').at(-1)
-    return unlink(`images/${imageToDelete}`).then(() => product)
-}
+//function deleteImage(product) {
+//   const { imageUrl } = product
+//  const imageToDelete = imageUrl.split('/').at(-1)
+// return unlink(`images/${imageToDelete}`).then(() => product)
+//}
 
-module.exports = { getSauces, createSauces, getSaucesById, deleteSauces }
+module.exports = { getSauces, createSauces, getSaucesById, deleteSauces, modifySauces }
