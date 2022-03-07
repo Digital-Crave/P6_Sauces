@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { unlink } = require('fs')
+const unlink = require('fs').promises.unlink
 
 const productSchema = new mongoose.Schema({
     userId: String,
@@ -79,13 +79,11 @@ function deleteSauces(req, res) {
         .catch((error) => res.status(500).send({ message: error }))
 }
 
+
 function deleteImage(product) {
-    const imageUrl = product.imageUrl
+    const { imageUrl } = product
     const imageToDelete = imageUrl.split('/').at(-1)
-    unlink(`images/${imageToDelete}`, (err) => {
-        console.error(err)
-    })
-    return product
+    return unlink(`images/${imageToDelete}`).then(() => product)
 }
 
 module.exports = { getSauces, createSauces, getSaucesById, deleteSauces }
