@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const unlink = require('fs').promises.unlink
+const mongoose = require('mongoose')
+const { unlink } = require('fs')
 
 const productSchema = new mongoose.Schema({
     userId: String,
@@ -20,41 +20,69 @@ const Product = mongoose.model("Product", productSchema)
 
 async function getSauces(req, res) {
     try {
-        const products = await Product.find({})
-        res.send(products)
+        const sauces = await Product.find({})
+        res.send(sauces)
     } catch (error) {
         res.status(500).send(error)
     }
 }
 
-async function getSaucesById(req, res, next) {
+async function getSaucesById(req, res) {
     try {
         const { id } = req.params
-        if (!req.params.id) next()
-        else {
-            const product = await Product.findById(id)
-            res.send(product)
+        if (!req.params.id) {
+            res.status(404).send({ error: "Invalid id provided" })
+        } else {
+            const sauce = await Product.findById(id)
+            if (!sauce) {
+                res.status(404).send({ message: "nothing was found in database" })
+            } else {
+                res.send(sauce)
+            }
         }
     } catch (error) {
         res.status(500).send(error)
     }
 }
 
-function modifySauces(req, res) {
+async function modifySauces(req, res) {
     const { params: { id } } = req
 
-    const { body } = req
 
-    Product.findByIdAndUpdate(id, body)
-        .then((response) => {
-            if (response == null) {
-                res.status(404).send({ message: "nothing was found" })
-            } else {
-                res.status(200).send({ message: "update done" })
-            }
-        })
-        .catch((err) => console.error("error while updating", err))
+    const hasNewImage = req.file != null
+    const payload = addPayload(hasNewImage, req)
+
+    try {
+        const product = await Product.findByIdAndUpdate(id, payload)
+        if (product == null) {
+            res.status(404).send({ message: "nothing was found" })
+        } else {
+            deleteImage(product)
+            res.status(200).send({ message: "update done" })
+        }
+    } catch (err) {
+        console.error("error while updating", err)
+    }
 }
+
+function deleteImage(product) {
+    if (product == null) {
+        return
+    }
+    const imageToDelete = product.imageUrl.split("/").at(-1)
+    unlink("images/" + imageToDelete, (err) => {
+        if (err) throw err;
+        console.log('sucessful deleted')
+    });
+}
+
+function addPayload(hasNewImage, req) {
+    if (!hasNewImage) return req.body
+    const payload = JSON.parse(req.body.sauce)
+    payload.imageUrl = req.protocol + "://" + req.get("host") + "/images/" + req.file.fileName
+    return payload
+}
+
 
 async function createSauces(req, res) {
     const { body, file } = req
@@ -87,24 +115,19 @@ async function createSauces(req, res) {
 }
 
 
-function deleteSauces(req, res) {
+async function deleteSauces(req, res) {
     const { id } = req.params
-    Product.findByIdAndDelete(id)
-        .then((product) => {
-            if (product == null) {
-                res.status(404).send({ message: "nothing was found in database" })
-            } else {
-                res.status(200).send({ message: "update done" })
-            }
-        })
-        .catch((err) => res.status(500).send({ message: err }))
+    try {
+        const product = await Product.findByIdAndDelete(id)
+        if (product == null) {
+            res.status(404).send({ message: "nothing was found in database" })
+        } else {
+            res.status(200).send({ message: "update done" })
+        }
+    } catch (err) {
+        res.status(500).send({ message: err })
+    }
 }
 
-
-//function deleteImage(product) {
-//   const { imageUrl } = product
-//  const imageToDelete = imageUrl.split('/').at(-1)
-// return unlink(`images/${imageToDelete}`).then(() => product)
-//}
 
 module.exports = { getSauces, createSauces, getSaucesById, deleteSauces, modifySauces }

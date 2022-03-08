@@ -28,9 +28,7 @@ app.get("/api/sauces/:id", authenticatedUser, getSaucesById)
 app.delete("/api/sauces/:id", authenticatedUser, deleteSauces)
 app.post('/api/sauces', authenticatedUser, upload.single("image"), createSauces)
 app.put('/api/sauces/:id', authenticatedUser, upload.single("image"), modifySauces)
-app.get('/', (req, res) =>
-    res.send('Hello World!')
-)
+
 
 path.join(__dirname)
 app.use("/images", express.static(path.join(__dirname, 'images')))
@@ -38,6 +36,7 @@ app.use("/images", express.static(path.join(__dirname, 'images')))
 app.listen(port, () => {
     console.log(`Sauce app listening on port ${port}`)
 })
+
 
 
 

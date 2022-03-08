@@ -26,7 +26,7 @@ async function userLog(req, res) {
 
         const email = req.body.email
         if (!email) {
-            res.status(403).send({ message: "Email incorrect ! " })
+            res.status(403).send({ message: "Email ou Mot de passe incorrect ! " })
         }
 
         const password = req.body.password
@@ -34,7 +34,7 @@ async function userLog(req, res) {
 
         const validatePassword = await bcrypt.compare(password, user.password)
         if (!validatePassword) {
-            res.status(403).send({ message: "Mot de passe incorrect ! " })
+            res.status(403).send({ message: "Email ou Mot de passe incorrect ! " })
         }
         const token = createToken(email)
         res.status(200).send({ userId: user?._id, token: token })
