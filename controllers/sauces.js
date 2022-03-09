@@ -1,22 +1,5 @@
-const mongoose = require('mongoose')
-const { unlink } = require('fs')
-
-const productSchema = new mongoose.Schema({
-    userId: String,
-    name: String,
-    manufacturer: String,
-    description: String,
-    mainPepper: String,
-    imageUrl: String,
-    heat: Number,
-    likes: Number,
-    dislikes: Number,
-    usersLiked: [String],
-    usersDisliked: [String]
-})
-
-const Product = mongoose.model("Product", productSchema)
-
+const fs = require('fs')
+const Product = require('../models/sauces')
 
 async function getSauces(req, res) {
     try {
@@ -45,7 +28,7 @@ async function getSaucesById(req, res) {
     }
 }
 
-async function modifySauces(req, res) {
+async function modifySauces(req, res, next) {
     const { params: { id } } = req
 
 
@@ -57,24 +40,32 @@ async function modifySauces(req, res) {
         if (product == null) {
             res.status(404).send({ message: "nothing was found" })
         } else {
-            deleteImage(product)
-            res.status(200).send({ message: "update done" })
+            if (req.file != null) {
+                res.status(200).send({ message: "update done" })
+                deleteImage(product)
+            } else {
+                res.status(200).send({ message: "update done" })
+            }
         }
     } catch (err) {
         console.error("error while updating", err)
     }
 }
 
+
 function deleteImage(product) {
     if (product == null) {
         return
     }
-    const imageToDelete = product.imageUrl.split("/").at(-1)
-    unlink("images/" + imageToDelete, (err) => {
-        if (err) throw err;
-        console.log('sucessful deleted')
-    });
+
+    const imageToDelete = product.imageUrl.split("/images")[1]
+
+    fs.unlink(`images/${imageToDelete}`, (err) => {
+        if (err)
+            throw err;
+    })
 }
+
 
 function addPayload(hasNewImage, req) {
     if (!hasNewImage) return req.body
@@ -117,6 +108,7 @@ async function createSauces(req, res) {
 
 async function deleteSauces(req, res) {
     const { id } = req.params
+
     try {
         const product = await Product.findByIdAndDelete(id)
         if (product == null) {

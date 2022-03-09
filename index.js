@@ -7,6 +7,7 @@ const bodyParser = require('body-parser')
 const path = require('path')
 const { upload } = require('./middleware/multer')
 const { authenticatedUser } = require('./middleware/authentification')
+const { validateId } = require('./middleware/validateId')
 
 const port = 3000
 
@@ -25,9 +26,9 @@ app.post('/api/auth/signup', createUser)
 app.post('/api/auth/login', userLog)
 app.get('/api/sauces', authenticatedUser, getSauces)
 app.get("/api/sauces/:id", authenticatedUser, getSaucesById)
-app.delete("/api/sauces/:id", authenticatedUser, deleteSauces)
+app.delete("/api/sauces/:id", authenticatedUser, validateId, deleteSauces)
 app.post('/api/sauces', authenticatedUser, upload.single("image"), createSauces)
-app.put('/api/sauces/:id', authenticatedUser, upload.single("image"), modifySauces)
+app.put('/api/sauces/:id', authenticatedUser, validateId, upload.single("image"), modifySauces)
 
 
 path.join(__dirname)
