@@ -1,6 +1,10 @@
 const fs = require('fs')
 const Product = require('../models/sauces')
 
+function updateDone(res) {
+    res.status(200).send({ message: "update done" })
+}
+
 async function getSauces(req, res) {
     try {
         const sauces = await Product.find({})
@@ -41,10 +45,10 @@ async function modifySauces(req, res, next) {
             res.status(404).send({ message: "nothing was found" })
         } else {
             if (req.file != null) {
-                res.status(200).send({ message: "update done" })
+                updateDone(res)
                 deleteImage(product)
             } else {
-                res.status(200).send({ message: "update done" })
+                updateDone(res)
             }
         }
     } catch (err) {
@@ -114,12 +118,19 @@ async function deleteSauces(req, res) {
         if (product == null) {
             res.status(404).send({ message: "nothing was found in database" })
         } else {
-            res.status(200).send({ message: "update done" })
+            deleteImage(product)
+            updateDone(res)
         }
     } catch (err) {
         res.status(500).send({ message: err })
     }
 }
 
+function likeSauce(req, res) {
+    const { id } = req.params
+    Product.findById(id)
 
-module.exports = { getSauces, createSauces, getSaucesById, deleteSauces, modifySauces }
+    const userId = req.body.userId
+}
+
+module.exports = { getSauces, createSauces, getSaucesById, deleteSauces, modifySauces, likeSauce }

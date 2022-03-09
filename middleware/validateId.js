@@ -2,7 +2,7 @@ require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const Product = require('../models/sauces');
 
-async function validateId(req, res) {
+async function validateId(req, res, next) {
     try {
         const product = await Product.findOne({ _id: req.params.id })
         // recup le token qui identifie
@@ -13,12 +13,12 @@ async function validateId(req, res) {
         const userId = decodedToken.userId;
         // on compare l'user id de la sauce et de celui du token
         if (product.userId && product.userId === userId) {
-            res.status(403).json({ message: 'Requête non autorisée' });
+            res.status(403).send({ message: 'Requête non autorisée' });
         } else {
-            res.status(202).json({ message: 'Requête autorisée' })
+            next();
         }
     } catch (error) {
-        res.status(401).json({ error })
+        res.status(401).send({ error })
     }
 }
 
