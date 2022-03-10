@@ -1,7 +1,8 @@
-const { User } = require("../mongo")
+const { User } = require("../models/users")
 const bcrypt = require('bcrypt')
 const saltRounds = 10
 const jwt = require('jsonwebtoken')
+
 
 async function createUser(req, res) {
     const { email, password } = req.body

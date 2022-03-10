@@ -1,3 +1,4 @@
+const { param } = require('express/lib/request')
 const fs = require('fs')
 const Product = require('../models/sauces')
 
@@ -10,7 +11,7 @@ async function getSauces(req, res) {
         const sauces = await Product.find({})
         res.send(sauces)
     } catch (error) {
-        res.status(500).send(error)
+        res.status(500).send({ message: "error" })
     }
 }
 
@@ -28,7 +29,7 @@ async function getSaucesById(req, res) {
             }
         }
     } catch (error) {
-        res.status(500).send(error)
+        res.status(500).send({ message: "error" })
     }
 }
 
@@ -127,10 +128,37 @@ async function deleteSauces(req, res) {
 }
 
 function likeSauce(req, res) {
-    const { id } = req.params
-    Product.findById(id)
+    if (![1, -1, 0].includes(req.body.like)) {
+        return res.status(403).send({ message: "Invalid like value" })
+    }
 
-    const userId = req.body.userId
+    if (req.body.like === 1) {
+        Product.findOneAndUpdate({ _id: req.params.id }, { $inc: { likes: 1 }, $push: { usersLiked: req.body.userId } })
+            .then(() => res.status(200).json({ message: "Like ajouté !" }))
+            .catch((error) => res.status(400).json({ error }));
+
+        // Si le client disike cette Product 
+    } else if (req.body.like === -1) {
+        Product.findOneAndUpdate({ _id: req.params.id }, { $inc: { dislikes: 1 }, $push: { usersDisliked: req.body.userId } })
+            .then(() => res.status(200).json({ message: "Dislike ajouté !" }))
+            .catch((error) => res.status(400).json({ error }));
+
+        // Si le client annule son choix
+    } else {
+        Product.findOne({ _id: req.params.id }).then((resultat) => {
+            if (resultat.usersLiked.includes(req.body.userId)) {
+                Product.findOneAndUpdate({ _id: req.params.id }, { $inc: { likes: -1 }, $pull: { usersLiked: req.body.userId } })
+                    .then(() => res.status(200).json({ message: "like retiré !" }))
+                    .catch((error) => res.status(400).json({ error }));
+            } else if (resultat.usersDisliked.includes(req.body.userId)) {
+                Product.findOneAndUpdate({ _id: req.params.id }, { $inc: { dislikes: -1 }, $pull: { usersDisliked: req.body.userId } })
+                    .then(() => res.status(200).json({ message: "dislike retiré !" }))
+                    .catch((error) => res.status(400).json({ error }));
+            }
+        });
+    }
 }
+
+
 
 module.exports = { getSauces, createSauces, getSaucesById, deleteSauces, modifySauces, likeSauce }

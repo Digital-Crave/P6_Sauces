@@ -1,37 +1,28 @@
-require('dotenv').config()
-
-const express = require('express')
-const app = express()
-const cors = require('cors')
+const { app, express } = require('./server')
+const { router } = require('./routers/sauce.routers')
+const { userRouter } = require('./routers/user.routers')
 const bodyParser = require('body-parser')
 const path = require('path')
 
-const { upload } = require('./middleware/multer')
-const { authenticatedUser } = require('./middleware/authentification')
-const { validateId } = require('./middleware/validateId')
-
 const port = 3000
 
+app.use('/api/sauces', router)
+app.use('/api/auth', userRouter)
 
-require("./mongo")
+require('./mongo')
 
-const { createUser, userLog } = require('./controllers/Users')
-const { getSauces, createSauces, getSaucesById, deleteSauces, modifySauces, likeSauce } = require('./controllers/sauces')
-
-app.use(cors())
-app.use(express.json());
 app.use(bodyParser.json());
 
+//eviter les erreurs de CORS
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    next();
+});
 
-app.post('/api/auth/signup', createUser)
-app.post('/api/auth/login', userLog)
-app.get('/api/sauces', authenticatedUser, getSauces)
-app.get("/api/sauces/:id", authenticatedUser, getSaucesById)
-app.delete("/api/sauces/:id", authenticatedUser, validateId, deleteSauces)
-app.post('/api/sauces', authenticatedUser, upload.single("image"), createSauces)
-app.put('/api/sauces/:id', authenticatedUser, validateId, upload.single("image"), modifySauces)
-app.post('/api/sauces/:id/like', authenticatedUser, likeSauce)
-
+app.get("/", (req, res) => res.send("Hello World!"))
 
 path.join(__dirname)
 app.use("/images", express.static(path.join(__dirname, 'images')))
