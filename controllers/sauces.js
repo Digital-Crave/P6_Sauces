@@ -130,35 +130,48 @@ async function deleteSauces(req, res) {
 function likeSauce(req, res) {
     if (![1, -1, 0].includes(req.body.like)) {
         return res.status(403).send({ message: "Invalid like value" })
-    }
-
-    if (req.body.like === 1) {
-        Product.findOneAndUpdate({ _id: req.params.id }, { $inc: { likes: 1 }, $push: { usersLiked: req.body.userId } })
-            .then(() => res.status(200).json({ message: "Like ajouté !" }))
-            .catch((error) => res.status(400).json({ error }));
-
-        // Si le client disike cette Product 
-    } else if (req.body.like === -1) {
-        Product.findOneAndUpdate({ _id: req.params.id }, { $inc: { dislikes: 1 }, $push: { usersDisliked: req.body.userId } })
-            .then(() => res.status(200).json({ message: "Dislike ajouté !" }))
-            .catch((error) => res.status(400).json({ error }));
-
-        // Si le client annule son choix
     } else {
-        Product.findOne({ _id: req.params.id }).then((resultat) => {
-            if (resultat.usersLiked.includes(req.body.userId)) {
-                Product.findOneAndUpdate({ _id: req.params.id }, { $inc: { likes: -1 }, $pull: { usersLiked: req.body.userId } })
-                    .then(() => res.status(200).json({ message: "like retiré !" }))
-                    .catch((error) => res.status(400).json({ error }));
-            } else if (resultat.usersDisliked.includes(req.body.userId)) {
-                Product.findOneAndUpdate({ _id: req.params.id }, { $inc: { dislikes: -1 }, $pull: { usersDisliked: req.body.userId } })
-                    .then(() => res.status(200).json({ message: "dislike retiré !" }))
-                    .catch((error) => res.status(400).json({ error }));
-            }
-        });
+        addLike(req, res)
+        addDislike(req, res)
+        removeLike(req, res)
     }
 }
 
+async function addLike(req, res) {
+    if (req.body.like === 1) {
+        try {
+            await Product.findOneAndUpdate({ _id: req.params.id }, { $inc: { likes: 1 }, $push: { usersLiked: req.body.userId } })
+            return res.status(200).send({ message: "Like ajouté !" })
+        } catch (error) {
+            res.status(400).send({ error })
+        }
+    }
+}
+
+async function addDislike(req, res) {
+    if (req.body.like === -1) {
+        try {
+            await Product.findOneAndUpdate({ _id: req.params.id }, { $inc: { dislikes: 1 }, $push: { usersDisliked: req.body.userId } })
+            return res.status(200).send({ message: "Dislike ajouté !" })
+        } catch (error) {
+            res.status(400).send({ error })
+        }
+    }
+}
+
+function removeLike(req, res) {
+    Product.findOne({ _id: req.params.id }).then((resultat) => {
+        if (resultat.usersLiked.includes(req.body.userId)) {
+            Product.findOneAndUpdate({ _id: req.params.id }, { $inc: { likes: -1 }, $pull: { usersLiked: req.body.userId } })
+                .then(() => res.status(200).send({ message: "Like retiré !" }))
+                .catch((error) => res.status(400).send({ error }));
+        } else if (resultat.usersDisliked.includes(req.body.userId)) {
+            Product.findOneAndUpdate({ _id: req.params.id }, { $inc: { dislikes: -1 }, $pull: { usersDisliked: req.body.userId } })
+                .then(() => res.status(200).send({ message: "Dislike retiré !" }))
+                .catch((error) => res.status(400).send({ error }));
+        }
+    });
+}
 
 
 module.exports = { getSauces, createSauces, getSaucesById, deleteSauces, modifySauces, likeSauce }
