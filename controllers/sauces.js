@@ -127,6 +127,7 @@ async function deleteSauces(req, res) {
     }
 }
 
+//si la valeur d'un like n'est pas 1, -1 ou 0 un message d'erreur va être retourné
 function likeSauce(req, res) {
     if (![1, -1, 0].includes(req.body.like)) {
         return res.status(403).send({ message: "Invalid like value" })
@@ -134,9 +135,12 @@ function likeSauce(req, res) {
         addLike(req, res)
         addDislike(req, res)
         removeLike(req, res)
+        removeDislike(req, res)
     }
 }
 
+
+//update le bon produit sélectionné grâce à son id + y ajouter un like + mettre l'userId de celui qui a like dans l'array des users ayant liké ce produit
 async function addLike(req, res) {
     if (req.body.like === 1) {
         try {
@@ -148,6 +152,7 @@ async function addLike(req, res) {
     }
 }
 
+//update le bon produit sélectionné grâce à son id + ajouter un dislike + mettre l'userId de celui qui a dislike dans l'array des users ayant disliké ce produit
 async function addDislike(req, res) {
     if (req.body.like === -1) {
         try {
@@ -159,18 +164,28 @@ async function addDislike(req, res) {
     }
 }
 
+//on recup un produit grâce à son id
+//on regarde si l'userId est dans l'array de ceux qui ont like ou dislike
+//selon l'array dans laquelle il est, il pourra retirer son like/dislike
+// et il sera enlevé de l'array des users ayant like ou dislike selon son action
 function removeLike(req, res) {
     Product.findOne({ _id: req.params.id }).then((resultat) => {
         if (resultat.usersLiked.includes(req.body.userId)) {
             Product.findOneAndUpdate({ _id: req.params.id }, { $inc: { likes: -1 }, $pull: { usersLiked: req.body.userId } })
                 .then(() => res.status(200).send({ message: "Like retiré !" }))
                 .catch((error) => res.status(400).send({ error }));
-        } else if (resultat.usersDisliked.includes(req.body.userId)) {
+        }
+    })
+}
+
+function removeDislike(req, res) {
+    Product.findOne({ _id: req.params.id }).then((resultat) => {
+        if (resultat.usersDisliked.includes(req.body.userId)) {
             Product.findOneAndUpdate({ _id: req.params.id }, { $inc: { dislikes: -1 }, $pull: { usersDisliked: req.body.userId } })
                 .then(() => res.status(200).send({ message: "Dislike retiré !" }))
                 .catch((error) => res.status(400).send({ error }));
         }
-    });
+    })
 }
 
 
