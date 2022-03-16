@@ -33,7 +33,7 @@ async function getSaucesById(req, res) {
     }
 }
 
-async function modifySauces(req, res, next) {
+async function modifySauces(req, res) {
     const { params: { id } } = req
 
 
@@ -57,6 +57,12 @@ async function modifySauces(req, res, next) {
     }
 }
 
+function addPayload(hasNewImage, req) {
+    if (!hasNewImage) return req.body
+    const payload = JSON.parse(req.body.sauce)
+    payload.imageUrl = req.protocol + "://" + req.get("host") + "/images/" + req.file.fileName
+    return payload
+}
 
 function deleteImage(product) {
     if (product == null) {
@@ -72,12 +78,6 @@ function deleteImage(product) {
 }
 
 
-function addPayload(hasNewImage, req) {
-    if (!hasNewImage) return req.body
-    const payload = JSON.parse(req.body.sauce)
-    payload.imageUrl = req.protocol + "://" + req.get("host") + "/images/" + req.file.fileName
-    return payload
-}
 
 
 async function createSauces(req, res) {
